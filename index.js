@@ -2,10 +2,12 @@ const fs = require('fs').promises
 const OS = require('opensubtitles-api');
 const OpenSubtitles = new OS('TemporaryUserAgent');
 
-const dir = 'X:\\dir\\subdir'
+const dir = 'E:\\Downloads\\2020-02\\The Office US\\The Office US S03 (360p re-webrip)'
 
-const video_file_types = ['mp4', 'avi'];
+const video_file_types = ['mp4', 'avi', 'mkv'];
 const subtitle_file_types = ['srt', 'sub'];
+
+const subtitle_languages = ['cze' , 'eng']
 
 
 async function run()
@@ -45,16 +47,24 @@ async function run()
     await asyncForEach(filesToCheck, async (f) => {
         console.log('Searching for ' + f.name);
         var url = await OpenSubtitles.search({
-                      sublanguageid: 'cze',
+                      sublanguageid: subtitle_languages.join(','),
                       path: dir + '\\' + f.video_file,
                       extensions: subtitle_file_types,
                   })
                   .then(res => {
                       if (res.cs)
                       {
+                        console.log('found CZ');
                           return {
                             url: res.cs.utf8,
                             suffix: res.cs.filename.substr(-3)
+                          }
+                      }
+                      else if (res.en) {
+                      console.log('found EN');
+                          return {
+                            url: res.en.utf8,
+                            suffix: res.en.filename.substr(-3)
                           }
                       }
                       else
@@ -67,6 +77,7 @@ async function run()
         if (url)
         {
             console.log('Downloading subtitles from ' + url.url)
+            
             var subtitles = await getContent(url.url);
             
             if (subtitles)
@@ -77,6 +88,7 @@ async function run()
                   .catch((err) => console.error(err));
             
             }
+            
         }
     })
     
